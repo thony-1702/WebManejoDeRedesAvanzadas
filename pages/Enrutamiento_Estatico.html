@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrutamiento Estático - Red Triangular</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div style="margin-bottom: 20px;">
+            <a href="../index.html" class="card-btn" style="background: #334155; color: #fff; padding: 8px 20px;">← Volver al Inicio</a>
+        </div>
+
+        <header class="main-header">
+            <h1>Enrutamiento Estático</h1>
+            <p>Configuración de una topología de tres redes interconectadas.</p>
+        </header>
+
+        <main style="display: flex; flex-direction: column; gap: 30px;">
+            
+            <section class="card" style="text-align: left;">
+                <h2>1. ¿Qué es el enrutamiento estático?</h2>
+                <p>El enrutamiento estático es un método de configuración de redes donde el administrador de la red ingresa manualmente las rutas en la tabla de enrutamiento del router. A diferencia de los protocolos dinámicos (que descubren rutas automáticamente), aquí le indicamos explícitamente al router por qué puerto o hacia qué IP debe enviar la información para alcanzar una red de destino que no tiene conectada directamente.</p>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>2. Elementos a utilizar en Cisco Packet Tracer</h2>
+                <p>Para construir esta topología, arrastraremos al área de trabajo los siguientes componentes:</p>
+                <ul style="margin-left: 20px; color: #94a3b8; line-height: 1.8; margin-top: 10px;">
+                    <li><strong>3 Routers 2911:</strong> Servirán como las puertas de enlace de cada red y enrutarán el tráfico entre ellas.</li>
+                    <li><strong>3 Switches 2960:</strong> Para conectar las computadoras de cada red local hacia su respectivo router.</li>
+                    <li><strong>9 PCs (Desktop):</strong> Tres computadoras para la Red A, tres para la Red B y tres para la Red C.</li>
+                    <li><strong>Cable Copper Straight-Through (Cable Directo):</strong> Para conectar las PCs a los switches, y los switches a los puertos Gigabit de los routers.</li>
+                    <li><strong>Cable Copper Cross-Over (Cable Cruzado):</strong> Para conectar los routers entre sí (puerto a puerto) creando el anillo central.</li>
+                </ul>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>3. Diseño de la Red y Direccionamiento</h2>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 15px;">
+                    <div>
+                        <h3 style="color: #4facfe;">Redes Locales (LAN)</h3>
+                        <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Cada router usará la primera IP disponible (.1) de su red como puerta de enlace.</p>
+                        <ul style="color: #e2e8f0; font-size: 0.95rem; margin-left: 15px;">
+                            <li><strong>Red A:</strong> 192.168.10.0 /24</li>
+                            <li><strong>Red B:</strong> 192.168.20.0 /24</li>
+                            <li><strong>Red C:</strong> 192.168.30.0 /24</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: #4facfe;">Enlaces entre Routers</h3>
+                        <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Conexiones consecutivas usando cables cruzados.</p>
+                        <ul style="color: #e2e8f0; font-size: 0.95rem; margin-left: 15px;">
+                            <li><strong>Router A ↔ Router B:</strong> 192.168.40.0 /24</li>
+                            <li><strong>Router B ↔ Router C:</strong> 192.168.50.0 /24</li>
+                            <li><strong>Router C ↔ Router A:</strong> 192.168.60.0 /24</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>4. Comandos de Interfaz y Enrutamiento Estático</h2>
+                <p>A continuación, se muestra la configuración clave para el <strong>Router A</strong> como ejemplo. Se debe seguir la misma lógica para los Routers B y C.</p>
+                
+                <h3 style="color: #4facfe; margin-top: 15px; font-size: 1.1rem;">Paso 1: Asignar IPs a las interfaces</h3>
+                <pre style="background-color: #020617; padding: 15px; border-radius: 8px; color: #10b981; font-family: 'Courier New', monospace; font-size: 0.85rem; overflow-x: auto;">
+! Configurando interfaz hacia la LAN (Red A)
+RouterA(config)# interface gigabitEthernet 0/0
+RouterA(config-if)# ip address 192.168.10.1 255.255.255.0
+RouterA(config-if)# no shutdown
+
+! Configurando interfaz hacia Router B
+RouterA(config)# interface gigabitEthernet 0/1
+RouterA(config-if)# ip address 192.168.40.1 255.255.255.0
+RouterA(config-if)# no shutdown</pre>
+
+                <h3 style="color: #4facfe; margin-top: 20px; font-size: 1.1rem;">Paso 2: Crear las Rutas Estáticas</h3>
+                <p style="font-size: 0.9rem; color: #94a3b8;">La sintaxis es: <code>ip route [Red de Destino] [Máscara] [IP del vecino por donde pasar]</code></p>
+                <pre style="background-color: #020617; padding: 15px; border-radius: 8px; color: #fbbf24; font-family: 'Courier New', monospace; font-size: 0.85rem; overflow-x: auto;">
+! Enseñándole a Router A cómo llegar a la Red B
+RouterA(config)# ip route 192.168.20.0 255.255.255.0 192.168.40.2
+
+! Enseñándole a Router A cómo llegar a la Red C
+RouterA(config)# ip route 192.168.30.0 255.255.255.0 192.168.60.1</pre>
+            </section>
+
+            <section class="card">
+                <h2>5. Video de Práctica</h2>
+                <p style="margin-bottom: 20px;">Observa el procedimiento completo de enrutamiento estático en este ejemplo práctico:</p>
+                
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                    <iframe 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                        src="https://www.youtube.com/embed/cXTjZs1oObE" 
+                        title="Video tutorial enrutamiento estático" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>
