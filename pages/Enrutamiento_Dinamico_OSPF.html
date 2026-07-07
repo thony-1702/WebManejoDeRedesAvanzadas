@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrutamiento Dinámico OSPF</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div style="margin-bottom: 20px;">
+            <a href="../index.html" class="card-btn" style="background: #334155; color: #fff; padding: 8px 20px;">← Volver al Inicio</a>
+        </div>
+
+        <header class="main-header">
+            <h1>Enrutamiento Dinámico OSPF</h1>
+            <p>Configuración avanzada en área única (Área Backbone 0) con 4 Routers.</p>
+        </header>
+
+        <main style="display: flex; flex-direction: column; gap: 30px;">
+            
+            <section class="card" style="text-align: left;">
+                <h2>1. ¿Qué es el Enrutamiento Dinámico OSPF?</h2>
+                <p><strong>OSPF (Open Shortest Path First)</strong> es un protocolo de enrutamiento de <em>estado de enlace</em> a nivel de redes Interiores (IGP). A diferencia de RIPv2, OSPF no cuenta saltos; en su lugar, utiliza el algoritmo de Dijkstra para calcular el camino más corto y rápido basándose en el <strong>ancho de banda (costo)</strong> de los enlaces.</p>
+                <p style="margin-top: 10px;">Para configurarlo adecuadamente en Cisco, es crucial comprender dos conceptos fundamentales:</p>
+                <ul style="margin-left: 20px; color: #94a3b8; line-height: 1.8; margin-top: 5px;">
+                    <li><strong>Máscara Wildcard:</strong> Es el inverso de la máscara de subred tradicional. Se obtiene restando la máscara habitual a 255.255.255.255 (ej. para una máscara /24 o 255.255.255.0, su wildcard es <code>0.0.0.255</code>).</li>
+                    <li><strong>Áreas OSPF:</strong> OSPF divide la red en áreas para segmentar el tráfico. En topologías pequeñas o medianas se utiliza obligatoriamente el <strong>Área 0</strong> (también llamada área backbone o troncal).</li>
+                </ul>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>2. Elementos a utilizar en Cisco Packet Tracer</h2>
+                <p>Para construir esta infraestructura en malla cuadrada, utilizaremos:</p>
+                <ul style="margin-left: 20px; color: #94a3b8; line-height: 1.8; margin-top: 10px;">
+                    <li><strong>4 Routers Cisco 2911:</strong> Actuarán como nodos principales (Router 0, Router 1, Router 2 y Router 3).</li>
+                    <li><strong>4 Switches Cisco 2960-24TT:</strong> Uno para distribuir la señal cableada en cada sección local.</li>
+                    <li><strong>4 Computadoras (PC):</strong> Un host final por red (PC0, PC1, PC2 y PC3) para realizar las pruebas de convergencia.</li>
+                    <li><strong>Cable Copper Cross-Over (Cable Cruzado):</strong> Para realizar los 4 enlaces WAN consecutivos de router a router.</li>
+                    <li><strong>Cable Copper Straight-Through (Cable Directo):</strong> Para interconectar los dispositivos finales y los switches.</li>
+                </ul>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>3. Diseño de la Red y Direccionamiento</h2>
+                <p style="margin-bottom: 15px;">La topología cierra un anillo perimetral donde cada esquina representa una red LAN local independiente:</p>
+                
+                
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 15px;">
+                    <div>
+                        <h3 style="color: #4facfe; margin-bottom: 8px;">Redes Locales (LAN)</h3>
+                        <ul style="color: #e2e8f0; font-size: 0.95rem; margin-left: 15px; line-height: 1.6;">
+                            <li><strong>LAN Router 0:</strong> 192.168.10.0 /24</li>
+                            <li><strong>LAN Router 1:</strong> 192.168.20.0 /24</li>
+                            <li><strong>LAN Router 2:</strong> 192.168.30.0 /24</li>
+                            <li><strong>LAN Router 3:</strong> 192.168.40.0 /24</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: #4facfe; margin-bottom: 8px;">Enlaces WAN (Malla Cuadrada)</h3>
+                        <ul style="color: #e2e8f0; font-size: 0.95rem; margin-left: 15px; line-height: 1.6;">
+                            <li><strong>Superior (R0 ↔ R1):</strong> 192.168.15.0 /24</li>
+                            <li><strong>Derecho (R1 ↔ R2):</strong> 192.168.25.0 /24</li>
+                            <li><strong>Inferior (R3 ↔ R2):</strong> 192.168.35.0 /24</li>
+                            <li><strong>Izquierdo (R0 ↔ R3):</strong> 192.168.45.0 /24</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>4. Configuración del Enrutamiento Dinámico OSPF</h2>
+                <p>En OSPF declaramos las redes directamente conectadas utilizando un identificador de proceso (Process ID) y la máscara wildcard, asignándolas todas al <strong>área 0</strong>.</p>
+                
+                <h3 style="color: #4facfe; margin-top: 15px; font-size: 1.1rem;">Comandos para Router 0 (Ejemplo):</h3>
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Router 0 está directamente conectado a su propia LAN (10.0), al enlace Superior (15.0) y al enlace Izquierdo (45.0).</p>
+                
+                <pre style="background-color: #020617; padding: 15px; border-radius: 8px; color: #fbbf24; font-family: 'Courier New', monospace; font-size: 0.85rem; overflow-x: auto;">
+Router_0> enable
+Router_0# configure terminal
+
+! Iniciamos el proceso OSPF con ID 1
+Router_0(config)# router ospf 1
+
+! Anunciamos las redes con su Wildcard (0.0.0.255) en el Área 0
+Router_0(config-router)# network 192.168.10.0 0.0.0.255 area 0
+Router_0(config-router)# network 192.168.15.0 0.0.0.255 area 0
+Router_0(config-router)# network 192.168.45.0 0.0.0.255 area 0
+Router_0(config-router)# end
+Router_0# write memory</pre>
+
+                <h3 style="color: #4facfe; margin-top: 25px; font-size: 1.1rem;">Redes a anunciar en el resto de los Routers:</h3>
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">Debes ingresar a <code>router ospf 1</code> en cada equipo y registrar sus 3 redes vecinas correspondientes:</p>
+                <ul style="color: #94a3b8; font-size: 0.9rem; margin-left: 20px; line-height: 1.6;">
+                    <li><strong>Router 1:</strong> Redes <code style="color:#e2e8f0">192.168.20.0</code>, <code style="color:#e2e8f0">192.168.15.0</code> y <code style="color:#e2e8f0">192.168.25.0</code></li>
+                    <li><strong>Router 2:</strong> Redes <code style="color:#e2e8f0">192.168.30.0</code>, <code style="color:#e2e8f0">192.168.25.0</code> y <code style="color:#e2e8f0">192.168.35.0</code></li>
+                    <li><strong>Router 3:</strong> Redes <code style="color:#e2e8f0">192.168.40.0</code>, <code style="color:#e2e8f0">192.168.35.0</code> y <code style="color:#e2e8f0">192.168.45.0</code></li>
+                </ul>
+            </section>
+
+            <section class="card">
+                <h2>5. Video Demostrativo</h2>
+                <p style="margin-bottom: 20px;">Revisa la implementación práctica paso a paso de este ejercicio de OSPF en Packet Tracer:</p>
+                
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                    <iframe 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                        src="https://www.youtube.com/embed/l46lUtp3ZLU" 
+                        title="Video tutorial OSPF Packet Tracer" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>
