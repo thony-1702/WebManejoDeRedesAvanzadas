@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enrutamiento Dinámico RIPv2</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+<body>
+
+    <div class="main-container">
+        
+        <div style="margin-bottom: 20px;">
+            <a href="../index.html" class="card-btn" style="background: #334155; color: #fff; padding: 8px 20px;">← Volver al Inicio</a>
+        </div>
+
+        <header class="main-header">
+            <h1>Enrutamiento Dinámico RIPv2</h1>
+            <p>Configuración y automatización de una topología en anillo con 4 Routers.</p>
+        </header>
+
+        <main style="display: flex; flex-direction: column; gap: 30px;">
+            
+            <section class="card" style="text-align: left;">
+                <h2>1. ¿Qué es el Enrutamiento Dinámico RIPv2?</h2>
+                <p>El enrutamiento dinámico permite que los routers intercambien información sobre la estructura de la red de forma automática. <strong>RIPv2 (Routing Information Protocol v2)</strong> es un protocolo de vector de distancia que utiliza el <em>conteo de saltos</em> como métrica para determinar el mejor camino (con un máximo de 15 saltos).</p>
+                <p style="margin-top: 10px;">A diferencia de su versión 1, <strong>RIPv2</strong> es un protocolo sin clase (classless), lo que significa que envía la máscara de subred en sus actualizaciones, soporta VLSM y utiliza la dirección multicast <code>224.0.0.9</code> para comunicarse con sus vecinos de forma eficiente.</p>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>2. Elementos a utilizar en Cisco Packet Tracer</h2>
+                <p>Para armar este escenario de 4 redes en anillo necesitaremos:</p>
+                <ul style="margin-left: 20px; color: #94a3b8; line-height: 1.8; margin-top: 10px;">
+                    <li><strong>4 Routers Cisco 2911:</strong> Uno para el núcleo de cada subred LAN.</li>
+                    <li><strong>4 Switches Cisco 2960:</strong> Para interconectar las terminales de cada red local.</li>
+                    <li><strong>4 Computadoras (PC):</strong> Un host final asignado a cada LAN para pruebas de ping.</li>
+                    <li><strong>Cable Copper Cross-Over (Cable Cruzado):</strong> Esencial para conectar los routers entre sí consecutivamente formando el anillo central.</li>
+                    <li><strong>Cable Copper Straight-Through (Cable Directo):</strong> Para interconectar las PCs a los switches y estos a los routers.</li>
+                </ul>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>3. Diseño de la Red y Direccionamiento</h2>
+                <p style="margin-bottom: 15px;">La topología distribuye de manera uniforme los segmentos IP tanto para los usuarios locales como para los tramos inter-router:</p>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+                    <div>
+                        <h3 style="color: #4facfe; margin-bottom: 8px;">Redes Locales (LAN)</h3>
+                        <ul style="color: #e2e8f0; font-size: 0.95rem; margin-left: 15px; line-height: 1.6;">
+                            <li><strong>Red 1:</strong> 192.168.100.0 /24 (GW: .1)</li>
+                            <li><strong>Red 2:</strong> 192.168.150.0 /24 (GW: .1)</li>
+                            <li><strong>Red 3:</strong> 192.168.200.0 /24 (GW: .1)</li>
+                            <li><strong>Red 4:</strong> 192.168.250.0 /24 (GW: .1)</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 style="color: #4facfe; margin-bottom: 8px;">Enlaces WAN (Anillo)</h3>
+                        <ul style="color: #e2e8f0; font-size: 0.95rem; margin-left: 15px; line-height: 1.6;">
+                            <li><strong>Enlace R1 ↔ R2:</strong> 192.168.120.0 /24</li>
+                            <li><strong>Enlace R2 ↔ R3:</strong> 192.168.125.0 /24</li>
+                            <li><strong>Enlace R3 ↔ R4:</strong> 192.168.130.0 /24</li>
+                            <li><strong>Enlace R4 ↔ R1:</strong> 192.168.135.0 /24</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" style="text-align: left;">
+                <h2>4. Explicación y Comandos de Enrutamiento RIPv2</h2>
+                <p>En el enrutamiento dinámico RIPv2, <strong>no</strong> configuramos rutas hacia destinos lejanos. En su lugar, entramos al protocolo y declaramos mediante el comando <code>network</code> únicamente las redes que el router tiene <strong>directamente conectadas</strong>. Él se encargará de compartirlas con sus vecinos.</p>
+                
+                <h3 style="color: #4facfe; margin-top: 15px; font-size: 1.1rem;">Ejemplo de configuración en el Router 1 (R1):</h3>
+                <p style="font-size: 0.9rem; color: #94a3b8; margin-bottom: 10px;">R1 tiene conectadas tres redes: su propia LAN (100.0) y los enlaces hacia R2 (120.0) y R4 (135.0).</p>
+                
+                <pre style="background-color: #020617; padding: 15px; border-radius: 8px; color: #fbbf24; font-family: 'Courier New', monospace; font-size: 0.85rem; overflow-x: auto;">
+Router_1> enable
+Router_1# configure terminal
+
+! 1. Activamos el protocolo RIP
+Router_1(config)# router rip
+
+! 2. Cambiamos a la versión 2 (Obligatorio)
+Router_1(config-router)# version 2
+
+! 3. Desactivamos la sumarización automática de clases
+Router_1(config-router)# no auto-summary
+
+! 4. Declaramos sus redes directamente conectadas
+Router_1(config-router)# network 192.168.100.0
+Router_1(config-router)# network 192.168.120.0
+Router_1(config-router)# network 192.168.135.0
+Router_1(config-router)# end
+Router_1# write memory</pre>
+                <p style="font-size: 0.85rem; margin-top: 10px; color: #94a3b8;">*Nota: Debes aplicar la misma lógica en los Routers 2, 3 y 4 utilizando las redes que les correspondan según sus conexiones físicas.</p>
+            </section>
+
+            <section class="card">
+                <h2>5. Video Demostrativo</h2>
+                <p style="margin-bottom: 20px;">Revisa la implementación práctica paso a paso y la verificación del ejercicio finalizado:</p>
+                
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                    <iframe 
+                        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;"
+                        src="https://www.youtube.com/embed/ih7lxPGLiFk" 
+                        title="Video tutorial RIPv2 Packet Tracer" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+</body>
+</html>
